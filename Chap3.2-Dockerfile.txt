@@ -1,0 +1,9 @@
+FROM node:24
+
+WORKDIR /usr/src/app
+# Copy everything from the local directory into the image
+COPY . .
+
+ENV DEBUG=fullstackopen-part-12:*
+
+CMD ["npm", "start"]

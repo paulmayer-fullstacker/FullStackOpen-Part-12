@@ -1,0 +1,13 @@
+# Dockerfile
+# Set the base for the image as node:24.
+FROM node:24
+# Set /usr/src/app as working directory. If the directory doesn't exist in the base image, it will be  created.
+WORKDIR /usr/src/app
+# Copy the file index.js from the host machine to the file with the same name in the image.
+COPY ./index.js ./index.js
+# CMD specifies default command that runs when we start a container with docker run (can be overwritten).
+# ["node", "index.js"]: runs the node executable with index.js as its argument.
+CMD ["node", "index.js"]
+
+# Build this custome Docker image with: docker build -t hello-world-image .
+# Then run the image with: docker run hello-world-image
