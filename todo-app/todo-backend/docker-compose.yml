@@ -1,0 +1,15 @@
+# docker-compose.yml: 
+
+# Define how the image should be built and how the container should run (i.e., port mapping)
+services:
+  app:                    # The name of the service, can be anything
+    # image:              # Declares which image to use. Defined in Dockerfile.
+    build: .              # Where to build if image is not found. Refer to Dockerfile in the current directory.
+    ports:                # Declares the ports to publish
+      - 3000:3000
+
+#
+# Build and run image: docker compose up
+# View in: http://localhost:3000/
+# Terminate execution: docker compose down
+#
