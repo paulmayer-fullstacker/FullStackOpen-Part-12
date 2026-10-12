@@ -1,0 +1,35 @@
+### requests.http:
+
+@baseUrl = http://localhost:3000
+
+### 1. Get all todos
+GET {{baseUrl}}/todos
+
+### 2. Create a new todo
+# @name testTodo
+POST {{baseUrl}}/todos
+Content-Type: application/json
+
+{
+  "text": "Test the todo routes with VS Code REST Client"
+}
+
+### 3. Get a single todo by ID 
+GET {{baseUrl}}/todos/{{testTodo.response.body._id}}
+
+### 4. Update a todo (mark as done / change text)
+PUT {{baseUrl}}/todos/{{testTodo.response.body._id}}
+Content-Type: application/json
+
+{
+  "text": "Test the update by Id route with VS Code REST Client",
+  "done": true
+}
+
+### 5. Delete a todo by Id
+DELETE {{baseUrl}}/todos/{{testTodo.response.body._id}}
+
+
+// Note:
+// # @name testTodo: comment directive that captures the response object from the request block.
+// testTodo.response.body._id: extracts the id from the response object.

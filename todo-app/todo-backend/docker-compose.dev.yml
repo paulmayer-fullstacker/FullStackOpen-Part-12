@@ -1,0 +1,51 @@
+# docker-compose.dev.yml:
+
+services:
+ # Defins a service (container) named "mongo".
+  mongo:
+  # Pull official MongoDB Docker image from Docker Hub.
+    image: mongo
+    # Map port 3456 on our host machine to port 27017 (MongoDB's default port) inside the container.
+    ports:
+      - 3456:27017
+    # Define environment variables inside the container to configure the database.
+    environment:
+    # Set the root username for authentication.
+      MONGO_INITDB_ROOT_USERNAME: root
+      # Sets the root password for authentication.
+      MONGO_INITDB_ROOT_PASSWORD: example
+      # Set the name of the database ('the_database') that will be created when the container first starts.
+      MONGO_INITDB_DATABASE: the_database
+    volumes:
+    # Mount local file (/mongo/mongo-init.js) into container's initialization directory (docker-entrypoint-initdb.d/mongo-init.js).
+    - ./mongo/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js
+    # Mount local directory (./mongo_data) to the container's database storage directory, for data persistence.
+    - ./mongo_data:/data/db   # Requires insersion in .gitignore
+
+#
+# Stop and delete current container and volumes:
+# # docker compose -f docker-compose.dev.yml down -v
+# Start fresh service with new user credentials:
+# # docker compose -f docker-compose.dev.yml up -d
+# Test:
+# # docker ps
+# Run Node backend locally:
+# # npm install
+# # MONGO_URL=mongodb://the_username:the_password@localhost:3456/the_database npm run dev
+# 
+# Test:
+# The visit counter:
+# # http://localhost:3000/
+# Db seede:
+# # http://localhost:3000/todos
+# Data persistence:
+# # docker compose -f docker-compose.dev.yml down
+# # docker compose -f docker-compose.dev.yml up -d
+# # http://localhost:3000/todos
+# Get todo by Id:
+# # http://localhost:3000/todos/6acce37438d2a19b34877134
+# All routes:
+# # Use requests.http via RESTClient.
+# Terminate service: 
+# # docker compose -f docker-compose.dev.yml down
+#
