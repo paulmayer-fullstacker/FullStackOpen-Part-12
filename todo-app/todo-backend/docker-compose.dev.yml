@@ -21,7 +21,10 @@ services:
     - ./mongo/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js
     # Mount local directory (./mongo_data) to the container's database storage directory, for data persistence.
     - ./mongo_data:/data/db   # Requires insersion in .gitignore
-
+  redis:
+    image: redis
+    ports:
+      - 6379:6379
 #
 # Stop and delete current container and volumes:
 # # docker compose -f docker-compose.dev.yml down -v

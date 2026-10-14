@@ -3,6 +3,10 @@ const router = express.Router();
 
 const configs = require('../util/config')
 
+// Import the Redis client to test the configuration.
+// If the configuration is correct, the server will start successfully without throwing an ECONNREFUSED error.
+const redis = require('../redis');
+
 let visits = 0
 
 /* GET index data. */
