@@ -1,0 +1,96 @@
+Paul Mayer@DESKTOP-4A09FAM MINGW64 /c/FullStack/Part-0/FullStackOpen/FullStackOpen-Part-12/todo-app/todo-backend (main)
+$ docker compose -f docker-compose.dev.yml down -v
+[+]  2/2 2/2
+ ✔ Container todo-backend-mongo-1 Removed                                                                                                                                       2.0s
+ ✔ Network todo-backend_default   Removed                                                                                                                                       1.1s
+
+Paul Mayer@DESKTOP-4A09FAM MINGW64 /c/FullStack/Part-0/FullStackOpen/FullStackOpen-Part-12/todo-app/todo-backend (main)
+$ docker compose -f docker-compose.dev.yml up -d
+[+]  2/2/2
+ ✔ Network todo-backend_default   Created                                                                                                                                       0.4s
+ ✔ Container todo-backend-mongo-1 Started                                                                                                                                       7.9s
+
+Paul Mayer@DESKTOP-4A09FAM MINGW64 /c/FullStack/Part-0/FullStackOpen/FullStackOpen-Part-12/todo-app/todo-backend (main)
+$ docker ps
+CONTAINER ID   IMAGE     COMMAND                  CREATED          STATUS          PORTS                                           NAMES
+12f36dfeacd7   mongo     "docker-entrypoint.s…"   28 seconds ago   Up 24 seconds   0.0.0.0:3456->27017/tcp, [::]:3456->27017/tcp   todo-backend-mongo-1
+
+Paul Mayer@DESKTOP-4A09FAM MINGW64 /c/FullStack/Part-0/FullStackOpen/FullStackOpen-Part-12/todo-app/todo-backend (main)
+$ docker exec -it todo-backend-mongo-1 mongosh -u root -p example
+Current Mongosh Log ID: 6acfc52026916a647acda64b
+Connecting to:          mongodb://<credentials>@127.0.0.1:27017/?directConnection=true&serverSelectionTimeoutMS=2000&appName=mongosh+2.12.0
+Using MongoDB:          9.0.2
+Using Mongosh:          2.12.0
+
+For mongosh info see: https://www.mongodb.com/docs/mongodb-shell/
+
+
+To help improve our products, pseudo-anonymous usage data is collected from interactive and agentic sessions only, and sent to MongoDB periodically (https://www.mongodb.com/legal/privacy-policy).
+You can opt-out by running the disableTelemetry() command.
+
+------
+   The server generated these startup warnings when booting
+   2026-10-14T18:08:14.632+00:00: For customers running the current memory allocator, we suggest changing the contents of the following sysfsFile
+   2026-10-14T18:08:14.633+00:00: For customers running the current memory allocator, we suggest changing the contents of the following sysfsFile
+   2026-10-14T18:08:14.633+00:00: We suggest setting the contents of sysfsFile to 0.
+   2026-10-14T18:08:14.634+00:00: We suggest setting swappiness to 0 or 1, as swapping can cause performance problems.
+------
+
+test> show dbs
+admin         100.00 KiB
+config         72.00 KiB
+local          80.00 KiB
+the_database   72.00 KiB
+test> use the_database
+switched to db the_database
+the_database> show collections
+todos
+the_database> db.todos.find({})
+[
+  {
+    _id: ObjectId('6acce37438d2a19b34877133'),
+    text: 'Write code',
+    done: true
+  },
+  {
+    _id: ObjectId('6acce37438d2a19b34877134'),
+    text: 'Learn about containers',
+    done: false
+  },
+  {
+    _id: ObjectId('6acd08b900b248d9185260fc'),
+    text: '* Test the backend with VS Code REST Client (Updated)',
+    done: true,
+    __v: 0
+  }
+]
+the_database> db.todos.insertOne({ text: "Increase the number of tools in my tool belt", done: false })
+{
+  acknowledged: true,
+  insertedId: ObjectId('6acfc60226916a647acda64c')
+}
+the_database> db.todos.find({})
+[
+  {
+    _id: ObjectId('6acce37438d2a19b34877133'),
+    text: 'Write code',
+    done: true
+  },
+  {
+    _id: ObjectId('6acce37438d2a19b34877134'),
+    text: 'Learn about containers',
+    done: false
+  },
+  {
+    _id: ObjectId('6acd08b900b248d9185260fc'),
+    text: '* Test the backend with VS Code REST Client (Updated)',
+    done: true,
+    __v: 0
+  },
+  {
+    _id: ObjectId('6acfc60226916a647acda64c'),
+    text: 'Increase the number of tools in my tool belt',
+    done: false
+  }
+]
+the_database>
