@@ -60,5 +60,6 @@ typings/
 # next.js build output
 .next
 
-# MongoDb mount volume mapping
+# MongoDb and Redis mount volume mapping
 mongo_data/
+redis_data/

@@ -11,7 +11,7 @@ POST {{baseUrl}}/todos
 Content-Type: application/json
 
 {
-  "text": "Test the todo routes with VS Code REST Client"
+  "text": "Test redis by adding a third new todo via VS Code REST Client"
 }
 
 ### 3. Get a single todo by ID 

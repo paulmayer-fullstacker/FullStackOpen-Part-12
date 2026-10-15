@@ -21,10 +21,18 @@ services:
     - ./mongo/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js
     # Mount local directory (./mongo_data) to the container's database storage directory, for data persistence.
     - ./mongo_data:/data/db   # Requires insersion in .gitignore
+
+  # Defines a service (container) named "redis".
   redis:
+    # Pull official Redis Docker image from Docker Hub.
     image: redis
+    # Map port 6379 on our host machine to port 6379 (Redis's default port) inside the container.
     ports:
       - 6379:6379
+    # Mount local directory (./redis_data) to the container's data directory, for Redis data persistence.
+    volumes:
+      - ./redis_data:/data   # Requires definition within local .gitignore
+
 #
 # Stop and delete current container and volumes:
 # # docker compose -f docker-compose.dev.yml down -v
