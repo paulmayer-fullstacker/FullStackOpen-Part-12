@@ -1,0 +1,33 @@
+Paul Mayer@DESKTOP-4A09FAM MINGW64 /c/FullStack/Part-0/FullStackOpen/FullStackOpen-Part-12/todo-app/todo-backend (main)
+$ docker compose -f docker-compose.dev.yml down
+[+] down 3/3
+ ✔ Container todo-backend-redis-1 Removed                                                                                                                                       2.3s
+ ✔ Container todo-backend-mongo-1 Removed                                                                                                                                       2.5s
+ ✔ Network todo-backend_default   Removed                                                                                                                                       1.1s
+
+Paul Mayer@DESKTOP-4A09FAM MINGW64 /c/FullStack/Part-0/FullStackOpen/FullStackOpen-Part-12/todo-app/todo-backend (main)
+$ docker compose -f docker-compose.dev.yml up -d
+[+] up 3/3
+ ✔ Network todo-backend_default   Created                                                                                                                                       0.2s
+ ✔ Container todo-backend-redis-1 Started                                                                                                                                       2.9s
+ ✔ Container todo-backend-mongo-1 Started                                                                                                                                       3.7s
+
+Paul Mayer@DESKTOP-4A09FAM MINGW64 /c/FullStack/Part-0/FullStackOpen/FullStackOpen-Part-12/todo-app/todo-backend (main)
+$ docker exec -it todo-backend-redis-1 redis-cli
+127.0.0.1:6379> KEYS *
+(empty array)
+127.0.0.1:6379> KEYS *
+1) "added_todos"
+127.0.0.1:6379> GET added_todos
+"1"
+127.0.0.1:6379> SET added_todos 9001
+OK
+127.0.0.1:6379> GET added_todos
+"9002"
+127.0.0.1:6379> DEL added_todos
+(integer) 1
+127.0.0.1:6379> GET added_todos
+(nil)
+127.0.0.1:6379> GET added_todos
+"1"
+127.0.0.1:6379> 

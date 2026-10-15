@@ -33,3 +33,6 @@ DELETE {{baseUrl}}/todos/{{testTodo.response.body._id}}
 // Note:
 // # @name testTodo: comment directive that captures the response object from the request block.
 // testTodo.response.body._id: extracts the id from the response object.
+
+### 6. Redis: Get usage statistics
+GET {{baseUrl}}/statistics

@@ -53,5 +53,9 @@ services:
 # # docker compose -f docker-compose.dev.yml down
 #
 # Startup and connect to Mongo and redis:
+# # docker compose -f docker-compose.dev.yml down
+# # docker compose -f docker-compose.dev.yml up -d
 ## MONGO_URL=mongodb://root:example@127.0.0.1:3456/the_database?authSource=admin REDIS_URL=redis://127.0.0.1:6379 npm run dev
-#
+
+# Access redis container:
+# # docker exec -it todo-backend-redis-1 redis-cli
