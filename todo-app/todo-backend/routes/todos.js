@@ -4,6 +4,9 @@ const express = require('express');
 const { Todo } = require('../mongo')
 const router = express.Router();
 
+// Import get and set from our redis/index.js
+const { get, set } = require('../redis');
+
 /* GET todos list */
 router.get('/', async (_, res) => {
   const todos = await Todo.find({})
@@ -15,7 +18,15 @@ router.post('/', async (req, res) => {
   const todo = await Todo.create({
     text: req.body.text,
     done: false
-  })
+  });
+  // Redis counter logic:
+  // Get the current count of added todos as a string from Redis (null if 'added_todos' key does not exist yet).
+  const currentCount = await get('added_todos');
+  // if currentCount par as int and increment, else start at 1.
+  const count = currentCount ? parseInt(currentCount) + 1 : 1;
+  // Explicitly convert count to string and save it back to Redis.
+  await set('added_todos', count.toString());
+
   res.send(todo);
 });
 
