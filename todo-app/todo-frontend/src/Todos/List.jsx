@@ -1,49 +1,19 @@
+// src/Todos/List.jsx: 
+// Import React library, for building JSX elements.
 import React from 'react'
-
+// Import the extracted individual Todo component.
+import Todo from './Todo'
+// Define the TodoList component, accepting todos array and action callbacks as props.
 const TodoList = ({ todos, deleteTodo, completeTodo }) => {
-  const onClickDelete = (todo) => () => {
-    deleteTodo(todo)
-  }
-
-  const onClickComplete = (todo) => () => {
-    completeTodo(todo)
-  }
-
   return (
     <>
+      {/* Map over the array of todo objects to generate individual Todo components */}
       {todos.map(todo => {
-        const doneInfo = (
-          <>
-            <span>This todo is done</span>
-            <span>
-              <button onClick={onClickDelete(todo)}> Delete </button>
-            </span>
-          </>
-        )
-
-        const notDoneInfo = (
-          <>
-            <span>
-              This todo is not done
-            </span>
-            <span>
-              <button onClick={onClickDelete(todo)}> Delete </button>
-              <button onClick={onClickComplete(todo)}> Set as done </button>
-            </span>
-          </>
-        )
-
-        return (
-          <div style={{ display: 'flex', justifyContent: 'space-between', maxWidth: '70%', margin: 'auto' }}>
-            <span>
-              {todo.text} 
-            </span>
-            {todo.done ? doneInfo : notDoneInfo}
-          </div>
-        )
+        return <Todo key={todo._id} todo={todo} deleteTodo={deleteTodo} completeTodo={completeTodo} />
+      // Use .reduce() on the array to inject a horizontal rule (<hr />) separator between items (but not at the bottom).
       }).reduce((acc, cur) => [...acc, <hr />, cur], [])}
     </>
   )
 }
-
+// Export component for use in TodoView.
 export default TodoList

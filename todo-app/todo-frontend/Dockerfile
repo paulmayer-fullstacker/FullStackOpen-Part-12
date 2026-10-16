@@ -1,18 +1,28 @@
 # Dockerfile (multi-stage):
 
-# Build Stage: Build the static assets using Node.js.
-FROM node:24 AS build-stage
+# Test stage: If this testing stage fails, the whole build process will also fail.
+FROM node:24 AS test-stage
 # Set /usr/src/app as working directory. If the directory doesn't exist in the base image, it will be created.
 WORKDIR /usr/src/app
-# Declare the build argument. Make it available to Vite during build, as an env var.
-ARG VITE_BACKEND_URL
-ENV VITE_BACKEND_URL=$VITE_BACKEND_URL
 # Copy package configuration files first to enable Docker layer caching for dependencies.
 COPY package*.json ./
 # Install dependencies (cached unless package.json changes).
 RUN npm ci
 # Copy the remaining project source code into the container.
 COPY . .
+# Run test: If this test fails, the test stage fails, and the build process fails.
+# Thus, preventing a broken app from progressing to a production image.
+RUN npm test -- --run
+
+# Build Stage: Build the static assets using Node.js.
+FROM node:24 AS build-stage
+# Set /usr/src/app as working directory.
+WORKDIR /usr/src/app
+# Copy tested code from the test stage (satisfies Docker optimization & ensures tested code is built).
+COPY --from=test-stage /usr/src/app /usr/src/app
+# Declare the build argument. Make it available to Vite during build, as an env var.
+ARG VITE_BACKEND_URL
+ENV VITE_BACKEND_URL=$VITE_BACKEND_URL
 # Compile the application into static production files inside the /dist directory.
 RUN npm run build
 
