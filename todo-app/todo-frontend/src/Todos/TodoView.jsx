@@ -20,7 +20,7 @@ const TodoView = () => {
     }
     // Execute the data fetching function
     fetchTodos()
-  }, [])  // Empty dependency array ensures this runs once only, on mount.
+  }, []) // Empty dependency array ensures this runs once only, on mount.
   // Handler function to create a new todo via POST request.
   const createTodo = async (todo) => {
     const { data } = await axios.post('/todos', todo)

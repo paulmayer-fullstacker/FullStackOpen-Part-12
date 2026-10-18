@@ -1,0 +1,18 @@
+services:
+  app:
+    image: hello-front-dev
+    build:
+      context: . # The context will pick this directory as the "build context"
+      dockerfile: dev.Dockerfile # This will simply tell which dockerfile to read
+    volumes:
+      - ./:/usr/src/app # The path can be relative, so ./ is enough to say "the same location as the docker-compose.yml"
+      - /usr/src/app/node_modules # node_modules anonymous volume.
+    ports:
+      - 5173:5173 # Port mpping host:container
+    container_name: my_vite_container # Name the container so we can find it easily and prepare management cmds.
+
+
+  # Build and Run the Image:
+  # # MSYS_NO_PATHCONV=1 docker compose -f docker-compose.dev.yml up --build
+  # Stop and Clean Up:
+  # # docker compose -f docker-compose.dev.yml down
