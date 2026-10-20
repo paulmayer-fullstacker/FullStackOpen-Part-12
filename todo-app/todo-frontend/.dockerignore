@@ -6,3 +6,6 @@ dist
 build
 .git
 .env
+dev.Dockerfile
+docker-compose\*.yml
+README.md

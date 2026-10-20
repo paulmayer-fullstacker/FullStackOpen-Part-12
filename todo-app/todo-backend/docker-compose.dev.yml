@@ -1,26 +1,32 @@
 # docker-compose.dev.yml:
 
 services:
- # Defins a service (container) named "mongo".
+  # Defins a service (container) named "mongo".
   mongo:
-  # Pull official MongoDB Docker image from Docker Hub.
+    # Pull official MongoDB Docker image from Docker Hub.
     image: mongo
     # Map port 3456 on our host machine to port 27017 (MongoDB's default port) inside the container.
     ports:
       - 3456:27017
     # Define environment variables inside the container to configure the database.
     environment:
-    # Set the root username for authentication.
+      # Set the root username for authentication.
       MONGO_INITDB_ROOT_USERNAME: root
       # Sets the root password for authentication.
       MONGO_INITDB_ROOT_PASSWORD: example
       # Set the name of the database ('the_database') that will be created when the container first starts.
       MONGO_INITDB_DATABASE: the_database
     volumes:
-    # Mount local file (/mongo/mongo-init.js) into container's initialization directory (docker-entrypoint-initdb.d/mongo-init.js).
-    - ./mongo/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js
-    # Mount local directory (./mongo_data) to the container's database storage directory, for data persistence.
-    - ./mongo_data:/data/db   # Requires insersion in .gitignore
+      # Mount local file (/mongo/mongo-init.js) into container's initialization directory (docker-entrypoint-initdb.d/mongo-init.js).
+      - ./mongo/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js
+      # Mount local directory (./mongo_data) to the container's database storage directory, for data persistence.
+      - ./mongo_data:/data/db # Requires insersion in .gitignore.
+    # Healthcheck: Mongo Db takes time to initialise. So, confirm that MongoDB is actively accepting connections:
+    healthcheck:
+      test: ['CMD', 'mongosh', '--eval', "db.adminCommand('ping')"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   # Defines a service (container) named "redis".
   redis:
@@ -31,7 +37,32 @@ services:
       - 6379:6379
     # Mount local directory (./redis_data) to the container's data directory, for Redis data persistence.
     volumes:
-      - ./redis_data:/data   # Requires definition within local .gitignore
+      - ./redis_data:/data # Requires definition within local .gitignore.
+
+  # Defines the backend application service ('server').
+  server:
+    build:
+      context: .
+      dockerfile: dev.Dockerfile
+    ports:
+      - 3000:3000
+    volumes:
+      # Bind-mount local directory to live-sync code changes into the container in real time.
+      - .:/usr/src/app
+      # Anonymous volume: protect the container's installed dependencies by preventing local host node_modules from overwriting container node_modules.
+      - /usr/src/app/node_modules
+    environment:
+      # Docker internal connection URLs, referencing Docker service names ('mongo' and 'redis').
+      - MONGO_URL=mongodb://root:example@mongo:27017/the_database?authSource=admin
+      - REDIS_URL=redis://redis:6379
+    # Wait for mongo to be up and fully 'healthy' and Redis to have started, before starting the server.
+    depends_on:
+      mongo:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    # Once depends_on is fulfilled:
+    command: npm run dev
 
 #
 # Stop and delete current container and volumes:
@@ -43,7 +74,7 @@ services:
 # Run Node backend locally:
 # # npm install
 # # MONGO_URL=mongodb://the_username:the_password@localhost:3456/the_database npm run dev
-# 
+#
 # Test:
 # The visit counter:
 # # http://localhost:3000/
@@ -57,7 +88,7 @@ services:
 # # http://localhost:3000/todos/6acce37438d2a19b34877134
 # All routes:
 # # Use requests.http via RESTClient.
-# Terminate service: 
+# Terminate service:
 # # docker compose -f docker-compose.dev.yml down
 #
 # Startup and connect to Mongo and redis:
@@ -67,3 +98,14 @@ services:
 
 # Access redis container:
 # # docker exec -it todo-backend-redis-1 redis-cli
+
+# # # Ex-16:
+# # Run & Test:
+# # Stop any running containers and clear old volumes to start fresh:
+# docker compose -f docker-compose.dev.yml down -v
+# # Build and start the services in detached mode:
+# docker compose -f docker-compose.dev.yml up --build -d
+# # Check the logs to verify that nodemon successfully started and connected to MongoDB and Redis:
+# docker compose -f docker-compose.dev.yml logs -f server
+# # Test the app:
+# From the browser, visit http://localhost:3000/ or http://localhost:3000/todos

@@ -47,7 +47,7 @@ const TodoView = () => {
 
   return (
     <>
-      <h1>Todos</h1>
+      <h1>Todos List</h1>
       {/* Form component handles input creation and passes data up via createTodo prop. */}
       <Form createTodo={createTodo} />
       {/* List component renders the array of todos along with action callbacks. */}

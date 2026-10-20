@@ -1,4 +1,5 @@
 services:
+  # The application under development:
   app:
     image: hello-front-dev
     build:
@@ -10,9 +11,14 @@ services:
     ports:
       - 5173:5173 # Port mpping host:container
     container_name: my_vite_container # Name the container so we can find it easily and prepare management cmds.
-
+  # # The Busybox utility tool:
+  # debug-helper:
+  #   image: busybox
 
   # Build and Run the Image:
-  # # MSYS_NO_PATHCONV=1 docker compose -f docker-compose.dev.yml up --build
+  # # docker compose -f docker-compose.dev.yml up --build
   # Stop and Clean Up:
   # # docker compose -f docker-compose.dev.yml down
+
+  # Use Buysbox's wget utility to test the Docker internal network:
+  # # docker compose -f docker-compose.dev.yml run debug-helper wget --header="Host: localhost" -O - http://app:5173

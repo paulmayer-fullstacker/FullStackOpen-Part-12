@@ -10,6 +10,7 @@ export default defineConfig({
   plugins: [react()],
   // Vite server block:
   server: {
+    allowedHosts: ['app', 'localhost'],
     host: true,
     port: 5173,
     // Add watch block to enable polling for Docker volumes, for Docker/virtualized file-watching:
