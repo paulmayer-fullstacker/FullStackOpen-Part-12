@@ -2,13 +2,77 @@
 # The root orchestration file for the development environment.
 
 services:
+  # MongoDB Database Service
+  mongo:
+    # Pull official MongoDB Docker image from Docker Hub.
+    image:
+      mongo
+      # Map port 3456 on our host machine to port 27017 (MongoDB's default port) inside the container.
+    ports:
+      - 3456:27017
+      # Define environment variables inside the container to configure the database.
+    environment:
+      # Set the root username for authentication.
+      MONGO_INITDB_ROOT_USERNAME: root
+      # Sets the root password for authentication.
+      MONGO_INITDB_ROOT_PASSWORD:
+        example
+        # Set the name of the database ('the_database') that will be created when the container first starts.
+      MONGO_INITDB_DATABASE: the_database
+    volumes:
+      # Mount local file (/mongo/mongo-init.js) into container's initialisation directory (docker-entrypoint-initdb.d/mongo-init.js).
+      - ./todo-backend/mongo/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js
+      # Mount local directory (./mongo_data) to the container's database storage directory, for data persistence.
+      - mongo_data:/data/db
+      # Healthcheck: Mongo Db takes time to initialise. So, confirm that MongoDB is actively accepting connections:
+    healthcheck:
+      test: ['CMD', 'mongosh', '--eval', "db.adminCommand('ping')"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+    # Defines a service (container) named "redis".
+  redis:
+    # Pull official Redis Docker image from Docker Hub.
+    image:
+      redis
+      # Map port 6379 on our host machine to port 6379 (Redis's default port) inside the container.
+    ports:
+      - 6379:6379
+    # Mount local directory (./redis_data) to the container's data directory, for Redis data persistence.
+    volumes:
+      - redis_data:/data # Requires definition within local .gitignore.
+
+    # Defines the backend application service ('server').
+  server:
+    build:
+      context: ./todo-backend
+      dockerfile: dev.Dockerfile
+    ports:
+      - 3000:3000
+    volumes:
+      # Bind-mount local directory to live-sync code changes into the container in real time.
+      - ./todo-backend:/usr/src/app
+      # Anonymous volume: protect the container's installed dependencies by preventing local host node_modules from overwriting container node_modules.
+      - /usr/src/app/node_modules
+    environment:
+      # Docker internal connection URLs, referencing Docker service names ('mongo' and 'redis').
+      - MONGO_URL=mongodb://root:example@mongo:27017/the_database?authSource=admin
+      - REDIS_URL=redis://redis:6379
+    # Wait for mongo to be up and fully 'healthy' and Redis to have started, before starting the server.
+    depends_on:
+      mongo:
+        condition: service_healthy
+      redis:
+        condition: service_started
+
   # The React frontend application service (Vite).
   app:
     build:
-      context: ./todo-frontend
-      dockerfile: dev.Dockerfile
+      context: ./todo-frontend # The directory to be used as the 'build context'.
+      dockerfile: dev.Dockerfile # This will simply tell which dockerfile to read.
     ports:
-      - 5173:5173
+      - 5173:5173 # Port mpping host:container
     volumes:
       # Bind-mount local frontend code into the container for live-reloading.
       - ./todo-frontend:/usr/src/app
@@ -30,10 +94,17 @@ services:
     depends_on:
       # Ensure the frontend 'app' container starts before Nginx attempts to resolve its DNS name.
       - app
+      - server
+# Register the named volumes globally, so Docker Compose knows they exist.
+volumes:
+  mongo_data:
+  redis_data:
 
 # Stop and delete current container and volumes:
 # # docker compose -f docker-compose.dev.yml down -v
 # Run:
-# # docker compose -f docker-compose.dev.yml up
+# # docker compose -f docker-compose.dev.yml up --build
 # Observe:
+# # http://localhost:8080/api/todos
+# Dynamic rerenders:
 # # http://localhost:8080
