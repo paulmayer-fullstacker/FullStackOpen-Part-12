@@ -1,0 +1,39 @@
+# docker-compose.dev.yml:
+# The root orchestration file for the development environment.
+
+services:
+  # The React frontend application service (Vite).
+  app:
+    build:
+      context: ./todo-frontend
+      dockerfile: dev.Dockerfile
+    ports:
+      - 5173:5173
+    volumes:
+      # Bind-mount local frontend code into the container for live-reloading.
+      - ./todo-frontend:/usr/src/app
+      # Anonymous volume to protect container node_modules from being overwritten by host.
+      - /usr/src/app/node_modules
+    environment:
+      - VITE_BACKEND_URL=http://localhost:8080
+
+  # Nginx Reverse Proxy service acting as the single point of entry.
+  nginx:
+    image: nginx:1.29
+    volumes:
+      # Mount the development Nginx configuration file as read-only (:ro).
+      - ./nginx.dev.conf:/etc/nginx/nginx.conf:ro
+    ports:
+      # Map host port 8080 to container port 80.
+      - 8080:80
+    container_name: reverse-proxy
+    depends_on:
+      # Ensure the frontend 'app' container starts before Nginx attempts to resolve its DNS name.
+      - app
+
+# Stop and delete current container and volumes:
+# # docker compose -f docker-compose.dev.yml down -v
+# Run:
+# # docker compose -f docker-compose.dev.yml up
+# Observe:
+# # http://localhost:8080
