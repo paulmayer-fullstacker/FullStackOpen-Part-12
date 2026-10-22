@@ -5,12 +5,11 @@ services:
   # MongoDB Database Service
   mongo:
     # Pull official MongoDB Docker image from Docker Hub.
-    image:
-      mongo
-      # Map port 3456 on our host machine to port 27017 (MongoDB's default port) inside the container.
-    ports:
-      - 3456:27017
-      # Define environment variables inside the container to configure the database.
+    image: mongo
+    #   # Map port 3456 on our host machine to port 27017 (MongoDB's default port) inside the container.
+    # ports:
+    #   - 3456:27017  #* Removed for security. In a secure production architecture, the only entry point should be Nginx (8080:80). *#
+    # Define environment variables inside the container to configure the database.
     environment:
       # Set the root username for authentication.
       MONGO_INITDB_ROOT_USERNAME: root
@@ -34,11 +33,10 @@ services:
     # Defines a service (container) named "redis".
   redis:
     # Pull official Redis Docker image from Docker Hub.
-    image:
-      redis
-      # Map port 6379 on our host machine to port 6379 (Redis's default port) inside the container.
-    ports:
-      - 6379:6379
+    image: redis
+    # # Map port 6379 on our host machine to port 6379 (Redis's default port) inside the container.
+    # ports:
+    #   - 6379:6379   #* Removed for security. *#
     # Mount local directory (./redis_data) to the container's data directory, for Redis data persistence.
     volumes:
       - redis_data:/data # Requires definition within local .gitignore.
@@ -48,8 +46,8 @@ services:
     build:
       context: ./todo-backend
       dockerfile: dev.Dockerfile
-    ports:
-      - 3000:3000
+    # ports:
+    #   - 3000:3000  #* Removed for security. *#
     volumes:
       # Bind-mount local directory to live-sync code changes into the container in real time.
       - ./todo-backend:/usr/src/app
@@ -71,15 +69,15 @@ services:
     build:
       context: ./todo-frontend # The directory to be used as the 'build context'.
       dockerfile: dev.Dockerfile # This will simply tell which dockerfile to read.
-    ports:
-      - 5173:5173 # Port mpping host:container
+    # ports:
+    #   - 5173:5173 #* Removed for security. *#
     volumes:
       # Bind-mount local frontend code into the container for live-reloading.
       - ./todo-frontend:/usr/src/app
       # Anonymous volume to protect container node_modules from being overwritten by host.
       - /usr/src/app/node_modules
     environment:
-      - VITE_BACKEND_URL=http://localhost:8080
+      - VITE_BACKEND_URL=http://localhost:8080/api
 
   # Nginx Reverse Proxy service acting as the single point of entry.
   nginx:
@@ -88,13 +86,16 @@ services:
       # Mount the development Nginx configuration file as read-only (:ro).
       - ./nginx.dev.conf:/etc/nginx/nginx.conf:ro
     ports:
-      # Map host port 8080 to container port 80.
-      - 8080:80
+      # Map host port 8080 to container port 80. The only port mapped in this file. Making Nginx the exclusive gateway to your application stack.
+      - 8080:80 # In a secure production architecture, the only entry point should be Nginx (8080:80).
     container_name: reverse-proxy
     depends_on:
       # Ensure the frontend 'app' container starts before Nginx attempts to resolve its DNS name.
       - app
       - server
+
+  # Note: Services do not need to be declared in 'depends_on' order. I did this for clarity only.
+
 # Register the named volumes globally, so Docker Compose knows they exist.
 volumes:
   mongo_data:
