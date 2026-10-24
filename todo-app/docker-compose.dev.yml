@@ -105,7 +105,9 @@ volumes:
 # # docker compose -f docker-compose.dev.yml down -v
 # Run:
 # # docker compose -f docker-compose.dev.yml up --build
-# Observe:
+# Observe json todos:
 # # http://localhost:8080/api/todos
-# Dynamic rerenders:
+# Dynamic rerenders of full app:
 # # http://localhost:8080
+# Site can not be reached:
+# # http://localhost:3000/todos

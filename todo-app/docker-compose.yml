@@ -1,0 +1,96 @@
+# docker-compose.yml:
+# The root orchestration file for the production environment.
+
+services:
+  # Defins a service (container) named 'mongo', for Production.
+  mongo:
+    # Pull official MongoDB Docker image from Docker Hub.
+    image: mongo
+    # Define environment variables inside the container to configure the database.
+    environment:
+      # Set the root username for authentication.
+      MONGO_INITDB_ROOT_USERNAME: root
+      # Sets the root password for authentication.
+      MONGO_INITDB_ROOT_PASSWORD: example
+      # Set the name of the database ('the_database') that will be created when the container first starts.
+      MONGO_INITDB_DATABASE: the_database
+    # Bug Fix: command: ['mongod', '--bind_ip_all'] required to allow container connectivity.
+    # By default, latest MongoDB versions bind strictly to localhost (127.0.0.1), inside the container for security.
+    # The '--bind_ip_all' flag tells MongoDB to listen on all network interfaces (0.0.0.0), allowing other Docker
+    # containers (like our backend 'server' service) to successfully connect to it across the internal Docker bridge network.
+    command: ['mongod', '--bind_ip_all']
+    volumes:
+      # Mount local file (/mongo/mongo-init.js) into container's initialization directory (docker-entrypoint-initdb.d/mongo-init.js).
+      - ./todo-backend/mongo/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js
+      # Mount local directory (./mongo_data) to the container's database storage directory, for data persistence.
+      - ./mongo_data:/data/db # Requires insersion in .gitignore.
+    # Healthcheck: Mongo Db takes time to initialise. So, confirm that MongoDB is actively accepting connections:
+    healthcheck:
+      test: ['CMD', 'mongosh', '--eval', "db.adminCommand('ping')"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Defines a service (container) named 'redis', for Production.
+  redis:
+    # Pull official Redis Docker image from Docker Hub.
+    image: redis
+    # Mount local directory (./redis_data) to the container's data directory, for Redis data persistence.
+    volumes:
+      - ./redis_data:/data # Requires definition within local .gitignore.
+
+  # Define Express backend service named todo-backend (for Production).
+  server:
+    build:
+      context: ./todo-backend
+      dockerfile: Dockerfile
+    image: todo-backend # Named 'todo-backend'
+    environment:
+      # Docker internal connection URLs, referencing Docker service names ('mongo' and 'redis').
+      - MONGO_URL=mongodb://root:example@mongo:27017/the_database?authSource=admin
+      - REDIS_URL=redis://redis:6379
+    # Wait for mongo to be up and fully 'healthy' and Redis to have started, before starting the server.
+    depends_on:
+      mongo:
+        condition: service_healthy
+      redis:
+        condition: service_started
+
+  # Define React frontend service named todo-front (Production)
+  app:
+    build:
+      context: ./todo-frontend # The context will pick this directory as the 'build context'.
+      dockerfile: Dockerfile # This will simply tell which dockerfile to read.
+      args:
+        - VITE_BACKEND_URL=http://localhost:8080/api
+    image: todo-front # Named 'todo-front'
+
+  # Nginx Production reverse proxy service acting as the single point of entry.
+  nginx:
+    image: nginx:1.29-alpine
+    volumes:
+      # Mount the production Nginx configuration file as read-only (:ro).
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    ports:
+      # Map host port 8080 to container port 80. The only port mapped in this file. Making Nginx the exclusive gateway to your application stack.
+      - 8080:80 # In a secure production architecture, the only entry point should be Nginx (8080:80).
+    container_name: production-proxy
+    depends_on:
+      # Ensure the frontend 'app' container starts before Nginx attempts to resolve its DNS name.
+      - app
+      - server
+
+# Register the named volumes globally, so Docker Compose knows they exist.
+volumes:
+  mongo_data:
+  redis_data:
+
+# Stop and delete current container and volumes:
+# # docker compose down -v
+# Run:
+# # docker compose up --build
+# Observe json todos:
+# # http://localhost:8080/api/todos (raw JSON todos)
+# The Full App: Our React production bundle should load, interacting seamlessly with the backend).
+# # http://localhost:8080
+
