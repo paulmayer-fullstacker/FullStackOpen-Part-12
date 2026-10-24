@@ -24,7 +24,10 @@ jobs:
 
       - name: Build todo-frontend image
         working-directory: ./todo-app/todo-frontend
-        run: docker build -t todo-front -f Dockerfile .
+        # run: docker build -t todo-front -f Dockerfile .
+        # Build the frontend Docker image while injecting the backend URL build argument. Since Vite bakes environment variables into the
+        # static bundle at compile time, we must pass VITE_BACKEND_URL so the frontend knows how to reach the API via Nginx.
+        run: docker build --build-arg VITE_BACKEND_URL=http://localhost:8080/api -t todo-front -f Dockerfile .
 
       - name: Start todo-app with Docker Compose
         working-directory: ./todo-app
