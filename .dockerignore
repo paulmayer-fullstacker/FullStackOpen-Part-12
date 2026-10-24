@@ -1,4 +1,19 @@
-.dockerignore
-.gitignore
-node_modules
-Dockerfile
+# Ignore local database and cache persistence volumes
+mongo_data/
+redis_data/
+
+# Ignore local dependencies and build artifacts
+node_modules/
+dist/
+build/
+.git/
+.env
+
+# Ignore logs and system files
+npm-debug.log*
+*.log
+
+# Ignore documentation, test reports, and configuration junk
+README.md
+playwright-report/
+test-results/
